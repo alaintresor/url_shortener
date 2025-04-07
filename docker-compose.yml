@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=url_shortener
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./url_shortener_be
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      # Database configuration
+      - PRO_DATABASE_NAME=url_shortener
+      - PRO_DATABASE_USER=postgres
+      - PRO_DATABASE_PASSWORD=postgres
+      - PRO_DATABASE_HOST=postgres
+      - PRO_DATABASE_PORT=5432
+      # JWT configuration
+      - JWT_SECRET=your_jwt_secret_key_here
+      - JWT_EXPIRES_IN=1d
+      - JWT_COOKIE_EXPIRES_IN=1
+      # Cloudinary configuration
+      - CLOUDINARY_USER_NAME=dkwsfaath
+      - CLOUDINARY_API_KEY=863947566359776
+      - CLOUDINARY_API_SECRET=B02wS9sSmDhPD-1GoPoqs2GpZQM
+      # Frontend URL
+      - FRONTEND_URL=http://localhost:3000
+    env_file:
+      - ./url_shortener_be/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./url_shortener_fe
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
+      - NEXT_PUBLIC_DOMAIN=http://localhost:3001/api/v1/urls
+    env_file:
+      - ./url_shortener_fe/.env
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data: 
