@@ -5,11 +5,15 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import router from "./routers";
+import { connectRedis } from "./config/redis";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 4000;
+
+// Initialize Redis connection
+connectRedis();
 
 // Configure CORS with proper options
 app.use(cors({
