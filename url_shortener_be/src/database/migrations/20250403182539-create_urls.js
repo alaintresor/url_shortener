@@ -43,9 +43,22 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+
+    // Add indexes for performance optimization
+    await queryInterface.addIndex("Urls", ["short_code"], {
+      unique: true,
+      name: "urls_short_code_index"
+    });
+    
+    await queryInterface.addIndex("Urls", ["user_id"], {
+      name: "urls_user_id_index"
+    });
   },
 
   async down(queryInterface, Sequelize) {
+    // Remove indexes before dropping table
+    await queryInterface.removeIndex("Urls", "urls_short_code_index");
+    await queryInterface.removeIndex("Urls", "urls_user_id_index");
     await queryInterface.dropTable("Urls");
   },
 };
