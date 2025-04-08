@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import api from '../../utils/apiHandler';
-import { CreateUrlPayload, UrlInterface, UrlsStatistics } from '@/types/urlTypes';
+import { CreateUrlPayload, UrlInterface, UrlsStatistics, PaginationInfo, PaginatedUrlsResponse } from '@/types/urlTypes';
 
 interface UrlState {
     urls: UrlInterface[] | null;
     recentUrl: UrlInterface | null;
     statistics: UrlsStatistics | null;
+    pagination: PaginationInfo | null;
     loading: boolean;
     error: string | null;
     success: boolean;
@@ -19,6 +20,7 @@ const initialState: UrlState = {
         totalClicks: 0,
         activeUrls: 0,
     },
+    pagination: null,
     loading: false,
     error: null,
     success: false,
@@ -52,15 +54,24 @@ export const createUrl = createAsyncThunk(
 
 export const fetchUrls = createAsyncThunk(
     'urls/fetchUrls',
-    async (_, { rejectWithValue }) => {
+    async ({ page = 1, limit = 10 }: { page?: number; limit?: number } = {}, { rejectWithValue }) => {
         try {
-            const response = await api.get<any>('/urls');
+            const response = await api.get<any>(`/urls?page=${page}&limit=${limit}`);
 
             if (!response.isSuccess) {
                 return rejectWithValue(response.error);
             }
 
-            return response.data
+            // Make sure we're returning the correct structure
+            return {
+                urls: response.data.urls || [],
+                pagination: response.data.pagination || {
+                    total: 0,
+                    page: page,
+                    limit: limit,
+                    totalPages: 0
+                }
+            };
         } catch (error) {
             return rejectWithValue('Failed to fetch urls');
         }
@@ -119,7 +130,7 @@ const urlSlice = createSlice({
             state.error = action.payload as string;
         });
 
-        // Handle AuthenticateUser
+        // Handle fetchUrls
         builder.addCase(fetchUrls.pending, (state) => {
             state.loading = true;
             state.error = null;
@@ -127,6 +138,7 @@ const urlSlice = createSlice({
         builder.addCase(fetchUrls.fulfilled, (state, action: PayloadAction<any>) => {
             state.loading = false;
             state.urls = action.payload.urls;
+            state.pagination = action.payload.pagination;
             state.success = true;
         });
         builder.addCase(fetchUrls.rejected, (state, action) => {

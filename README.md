@@ -284,7 +284,3 @@ The application uses JWT (JSON Web Tokens) for authentication:
    ```
    Authorization: Bearer <access-token>
    ```
-
-## License
-
-MIT 
