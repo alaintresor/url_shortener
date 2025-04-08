@@ -444,7 +444,7 @@ const options = {
           },
           email: {
             type: "string",
-            description: "User's address",
+            description: "User's email address",
           },
           password: {
             type: "string",
@@ -460,21 +460,86 @@ const options = {
       Url: {
         type: "object",
         properties: {
+          id: {
+            type: "integer",
+            description: "URL ID",
+          },
           user_id: {
-            type: "number",
-            description: "user's id",
+            type: "integer",
+            description: "User's ID who created the URL",
           },
           long_url: {
             type: "string",
-            description: "long url",
+            description: "Original long URL",
           },
           short_code: {
             type: "string",
-            description: "short code",
+            description: "Generated short code",
           },
           clicks: {
+            type: "integer",
+            description: "Number of times the URL was clicked",
+          },
+          created_at: {
             type: "string",
-            description: "cliks times",
+            format: "date-time",
+            description: "URL creation timestamp",
+          },
+          updated_at: {
+            type: "string",
+            format: "date-time",
+            description: "URL last update timestamp",
+          },
+        },
+      },
+      PaginationInfo: {
+        type: "object",
+        properties: {
+          currentPage: {
+            type: "integer",
+            description: "Current page number",
+          },
+          totalPages: {
+            type: "integer",
+            description: "Total number of pages",
+          },
+          totalItems: {
+            type: "integer",
+            description: "Total number of items",
+          },
+          itemsPerPage: {
+            type: "integer",
+            description: "Number of items per page",
+          },
+        },
+      },
+      Statistics: {
+        type: "object",
+        properties: {
+          totalUrls: {
+            type: "integer",
+            description: "Total number of URLs created",
+          },
+          totalClicks: {
+            type: "integer",
+            description: "Total number of clicks across all URLs",
+          },
+          averageClicksPerUrl: {
+            type: "number",
+            description: "Average number of clicks per URL",
+          },
+          mostClickedUrl: {
+            type: "object",
+            properties: {
+              short_code: {
+                type: "string",
+                description: "Short code of the most clicked URL",
+              },
+              clicks: {
+                type: "integer",
+                description: "Number of clicks for the most clicked URL",
+              },
+            },
           },
         },
       },

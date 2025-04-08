@@ -1,6 +1,6 @@
 # URL Shortener
 
-A full-stack URL shortening application built with Node.js, Express, Sequelize, PostgreSQL, Next.js, and TypeScript.
+A full-stack URL shortening application built with Node.js, Express, Sequelize, PostgreSQL, Next.js, and TypeScript. This application allows users to create shortened URLs, track click statistics, and manage their shortened URLs through a modern web interface.
 
 ## Features
 
@@ -8,9 +8,14 @@ A full-stack URL shortening application built with Node.js, Express, Sequelize, 
 - ✅ User authentication (register, login, logout)
 - ✅ JWT-based authentication with refresh tokens
 - ✅ Click tracking and analytics
+- ✅ URL management (create, update, delete)
+- ✅ Pagination for URL listing
+- ✅ Statistics dashboard
 - ✅ Responsive UI built with Next.js and Shadcn/UI
 - ✅ TypeScript for type safety
 - ✅ Docker setup for easy development and deployment
+- ✅ Swagger API documentation
+- ✅ Redis caching for improved performance
 
 ## Table of Contents
 
@@ -22,18 +27,34 @@ A full-stack URL shortening application built with Node.js, Express, Sequelize, 
 - [Environment Variables](#environment-variables)
 - [API Documentation](#api-documentation)
 - [Authentication](#authentication)
+- [Development](#development)
+- [Deployment](#deployment)
 
 ## Project Structure
 
 The project is divided into two main parts:
 
-- `url_shortener_be`: Backend API built with Node.js, Express, and Sequelize
-- `url_shortener_fe`: Frontend application built with Next.js and TypeScript
+### Backend (`url_shortener_be`)
+- Node.js and Express.js server
+- PostgreSQL database with Sequelize ORM
+- Redis for caching
+- JWT authentication
+- Swagger API documentation
+- TypeScript support
+
+### Frontend (`url_shortener_fe`)
+- Next.js application
+- TypeScript
+- Shadcn/UI components
+- Responsive design
+- JWT token management
+- URL management interface
 
 ## Prerequisites
 
 - Node.js (v16 or later)
 - PostgreSQL (v13 or later)
+- Redis (v6 or later)
 - Docker and Docker Compose (for Docker setup)
 
 ## Installation
@@ -48,7 +69,7 @@ The project is divided into two main parts:
 
 2. Create environment files:
    
-   For the backend (url_shortener_be/.env):
+   For the backend (`url_shortener_be/.env`):
    ```
    NODE_ENV=development
    PORT=3001
@@ -60,16 +81,20 @@ The project is divided into two main parts:
    DEV_DATABASE_HOST=postgres
    DEV_DATABASE_PORT=5432
    
+   # Redis
+   REDIS_HOST=redis
+   REDIS_PORT=6379
+   
    # JWT
    JWT_SECRET=your_jwt_secret_key_here
-   JWT_EXPIRES_IN=1d
-   JWT_COOKIE_EXPIRES_IN=1
+   JWT_EXPIRES_IN=15m
+   JWT_COOKIE_EXPIRES_IN=7
    
    # Frontend URL
    FRONTEND_URL=http://localhost:3000
    ```
    
-   For the frontend (url_shortener_fe/.env):
+   For the frontend (`url_shortener_fe/.env`):
    ```
    NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
    NEXT_PUBLIC_DOMAIN=http://localhost:3001/api/v1/urls
@@ -84,6 +109,7 @@ The project is divided into two main parts:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
    - API Documentation: http://localhost:3001/api/v1/docs
+   - Redis Commander: http://localhost:8081
 
 ### Manual Setup
 
@@ -148,14 +174,11 @@ The project is divided into two main parts:
 | `DEV_DATABASE_PASSWORD` | Development database password | postgres |
 | `DEV_DATABASE_HOST` | Development database host | localhost |
 | `DEV_DATABASE_PORT` | Development database port | 5432 |
-| `PRO_DATABASE_NAME` | Production database name | - |
-| `PRO_DATABASE_USER` | Production database user | - |
-| `PRO_DATABASE_PASSWORD` | Production database password | - |
-| `PRO_DATABASE_HOST` | Production database host | - |
-| `PRO_DATABASE_PORT` | Production database port | - |
+| `REDIS_HOST` | Redis host | localhost |
+| `REDIS_PORT` | Redis port | 6379 |
 | `JWT_SECRET` | Secret key for JWT token generation | - |
-| `JWT_EXPIRES_IN` | JWT token expiration time | 1d |
-| `JWT_COOKIE_EXPIRES_IN` | JWT cookie expiration time (days) | 1 |
+| `JWT_EXPIRES_IN` | JWT token expiration time | 15m |
+| `JWT_COOKIE_EXPIRES_IN` | JWT cookie expiration time (days) | 7 |
 | `FRONTEND_URL` | URL of the frontend application | http://localhost:3000 |
 
 ### Frontend Environment Variables
@@ -183,104 +206,84 @@ The API documentation is available at http://localhost:3001/api/v1/docs when the
 | Method | Endpoint | Description | Protected |
 |--------|----------|-------------|-----------|
 | POST | `/api/v1/urls` | Create a short URL | Yes |
+| GET | `/api/v1/urls` | Get user's URLs (paginated) | Yes |
 | GET | `/api/v1/urls/statistics` | Get URL statistics | Yes |
 | GET | `/api/v1/urls/:short_code` | Redirect to original URL | No |
+| PUT | `/api/v1/urls/:id` | Update a URL | Yes |
+| DELETE | `/api/v1/urls/:id` | Delete a URL | Yes |
 
-### API Request & Response Examples
+## Development
 
-#### Register User
+### Running Tests
 
-```http
-POST /api/v1/auth/register
-Content-Type: application/json
+```bash
+# Backend tests
+cd url_shortener_be
+npm test
 
-{
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "password123"
-}
+# Frontend tests
+cd url_shortener_fe
+npm test
 ```
 
-Response:
+### Code Style
 
-```json
-{
-  "status": "success",
-  "user": {
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com"
-  },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
+The project uses ESLint and Prettier for code formatting. To format your code:
+
+```bash
+# Backend
+cd url_shortener_be
+npm run lint
+npm run format
+
+# Frontend
+cd url_shortener_fe
+npm run lint
+npm run format
 ```
 
-#### Login User
+## Deployment
 
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
+### Production Deployment
 
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
-Response:
-
-```json
-{
-  "status": "success",
-  "message": "Login successful",
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com"
-  }
-}
-```
-
-#### Create Short URL
-
-```http
-POST /api/v1/urls
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-{
-  "long_url": "https://example.com/very/long/url/that/needs/shortening"
-}
-```
-
-Response:
-
-```json
-{
-  "status": "success",
-  "message": "URL created successfully",
-  "url": {
-    "id": 1,
-    "user_id": 1,
-    "short_code": "ab1c2d",
-    "long_url": "https://example.com/very/long/url/that/needs/shortening",
-    "clicks": 0,
-    "createdAt": "2023-12-01T12:00:00.000Z",
-    "updatedAt": "2023-12-01T12:00:00.000Z"
-  }
-}
-```
-
-## Authentication
-
-The application uses JWT (JSON Web Tokens) for authentication:
-
-1. When a user registers or logs in, they receive an access token and a refresh token.
-2. The access token is short-lived (default: 15 minutes) and is used to authenticate API requests.
-3. The refresh token is long-lived (default: 7 days) and is stored as an HTTP-only cookie.
-4. When the access token expires, the client can request a new one using the refresh token.
-5. To authenticate API requests, include the access token in the Authorization header:
+1. Set up environment variables for production
+2. Build the frontend:
+   ```bash
+   cd url_shortener_fe
+   npm run build
    ```
-   Authorization: Bearer <access-token>
+3. Start the production servers:
+   ```bash
+   # Backend
+   cd url_shortener_be
+   npm run start:prod
+
+   # Frontend
+   cd url_shortener_fe
+   npm start
    ```
+
+### Docker Deployment
+
+1. Build and push Docker images:
+   ```bash
+   docker-compose -f docker-compose.prod.yml build
+   docker-compose -f docker-compose.prod.yml push
+   ```
+
+2. Deploy using Docker Compose:
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the ISC License.
